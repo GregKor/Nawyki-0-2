@@ -119,7 +119,7 @@ function pts(k){var m=cats(k);return m.z+m.m+m.r+m.d}
 function stat(p){return p>=8?"Mistrzostwo! 🏆":p>=4?"Super! ⭐":p>=1?"Dobry dzień! 👍":"Do dzieła! 🌱"}
 function mdays(){var n=new Date(),a=[];for(var d=1;d<=n.getDate();d++)a.push(key(new Date(n.getFullYear(),n.getMonth(),d)));return a}
 function streak(){var n=pts(key(ago(0)))>0?0:1,c=0;while(pts(key(ago(n)))>0&&c<400){c++;n++}return c}
-var tab="dzis",P=null,timer=null,off=0,ed=false,edr=false,edy=false,fired={};
+var edx=false,tab="dzis",P=null,timer=null,off=0,ed=false,edr=false,edy=false,fired={};
 var TABS=[["dzis","Dziś"],["roz","Rozruch"],["ryt","Rytm dnia"],["pam","Pamiętnik"],["post","Postęp"],["fast","Post"],["rap","Raport"]];
 
 function esc(x){return String(x).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
@@ -158,7 +158,7 @@ function exEd(m,title){var x='<div class="card"><h3 style="margin-top:0">'+title
 function roz(){
  var k=key(new Date()),ro=S.ro[k]||{},h="";
  if(P){var L=S.ex[P.m],e=L[P.i];
-  h+='<div class="card"><div class="note" style="text-align:center">Ćwiczenie '+(P.i+1)+' z '+L.length+'</div><div class="bar"><i style="width:'+(P.i/L.length*100)+'%"></i></div><div class="ex">'+esc(e[0])+'</div><div class="var">'+esc(P.v==="A"?e[1]:e[2])+'</div><div class="big" id="tm">'+P.t+' s</div><div class="btns"><button class="sec" data-a="var">Wariant '+(P.v==="A"?"B":"A")+'</button><button class="pri" data-a="run">'+(P.run?"Pauza":"Start")+'</button><button class="sec" data-a="nx">Dalej ›</button></div><div class="foot"><button data-a="stop">Przerwij</button></div></div>';}
+  h+='<div class="card"><div class="note" style="text-align:center">Ćwiczenie '+(P.i+1)+' z '+L.length+'</div><div class="bar"><i style="width:'+(P.i/L.length*100)+'%"></i></div><div class="ex" id="xn">'+esc(e[0])+'</div><div class="var" id="xv">'+esc(P.v==="A"?e[1]:e[2])+'</div><div class="big" id="tm">'+P.t+' s</div><div class="btns"><button class="sec" data-a="var">Wariant '+(P.v==="A"?"B":"A")+'</button><button class="pri" data-a="run">'+(P.run?"Pauza":"Start")+'</button><button class="sec" data-a="nx">Dalej ›</button></div><div class="btns" style="margin-top:10px"><button class="sec" data-a="xed">'+(edx?"✓ Gotowe":"✏️ Edytuj ćwiczenie")+'</button></div>'+(edx?'<div class="ed">'+exIn(P.m,P.i,0,e[0],"Nazwa ćwiczenia")+exIn(P.m,P.i,1,e[1],"Opis / wariant A")+exIn(P.m,P.i,2,e[2],"Opis / wariant B")+'<div class="btns"><input type="number" min="5" max="600" data-f="exf" data-m="'+P.m+'" data-i="'+P.i+'" data-j="3" value="'+dur(P.m,P.i)+'" style="width:80px" aria-label="Czas w sekundach"><span class="note">s</span></div></div>':'')+'<h3>Uwagi do ćwiczenia</h3><textarea style="min-height:70px" data-f="exf" data-m="'+P.m+'" data-i="'+P.i+'" data-j="4" placeholder="Twoje uwagi, np. technika, samopoczucie">'+esc(e[4]||"")+'</textarea><div class="foot"><button data-a="stop">Przerwij</button></div></div>';}
  else{h+='<div class="g2"><div class="card"><b>Siedząca</b><div class="note">'+S.ex.s.length+' ćw., ok. '+Math.round(tsum("s")/60)+' min</div><p>'+(ro.s?"✅ Zrobione":"Do zrobienia")+'</p><button class="pri" data-a="go" data-m="s">Start</button></div><div class="card"><b>Stojąca</b><div class="note">'+S.ex.t.length+' ćw., ok. '+Math.round(tsum("t")/60)+' min</div><p>'+(ro.t?"✅ Zrobione":"Do zrobienia")+'</p><button class="pri" data-a="go" data-m="t">Start</button></div></div><div class="btns" style="margin-bottom:12px"><button class="sec" data-a="exe">'+(edr?"✓ Gotowe":"✏️ Edytuj ćwiczenia i czas")+'</button></div>';
   if(edr)h+=exEd("s","Siedząca")+exEd("t","Stojąca");
   h+='<div class="note">Jedna faza podnosi „Ćwiczenia fizyczne” do Plus, obie do Elita.</div>';}
@@ -243,6 +243,7 @@ function act2(a,id){
  else if(a==="fadd"){var s=new Date($("f1").value).getTime(),e=new Date($("f2").value).getTime();if(!(e>s)||e-s>72*36e5||e>Date.now()+6e4){alert("Podaj poprawne godziny: pierwszy posiłek musi być po ostatnim (maks. 72 h różnicy).");return true}S.fs.push({s:s,e:e});S.fs.sort(function(x,y){return x.s-y.s})}
  else if(a==="fdel"){if(!confirm("Usunąć ten wpis?"))return true;S.fs=S.fs.filter(function(f){return f.s!==+id})}
  else if(a==="rg")rg=+id;
+ else if(a==="xed")edx=!edx;
  else if(a==="pr"){window.print();return true}
  else if(a==="rt"){rt();return true}
  else if(a==="csv"){csv();return true}
@@ -250,14 +251,17 @@ function act2(a,id){
  else if(a==="imp"){$("imp").click();return true}
  else return false;
  sv();render();return true}
+var AC=null;
+function snd(){try{AC=AC||new(window.AudioContext||window.webkitAudioContext)();if(AC.state==="suspended")AC.resume()}catch(e){}}
+function beep(){try{snd();if(!AC)return;[0,.3,.6].forEach(function(d,i){var o=AC.createOscillator(),g=AC.createGain(),t=AC.currentTime+d;o.type="sine";o.frequency.value=i===2?1175:880;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.4,t+.02);g.gain.linearRampToValueAtTime(0,t+.22);o.connect(g);g.connect(AC.destination);o.start(t);o.stop(t+.25)})}catch(e){}}
 function render(){
  var n=new Date(),hr=n.getHours();$("gr").textContent=hr<12?"Dzień dobry!":hr<18?"Miłego dnia!":"Dobry wieczór!";
  $("dt").textContent=n.toLocaleDateString("pl-PL",{weekday:"long",day:"numeric",month:"long"})+" · streak: "+streak();
  $("tabs").innerHTML=TABS.map(function(t){return '<button class="'+(tab===t[0]?"on":"")+'" data-a="tab" data-id="'+t[0]+'">'+t[1]+'</button>'}).join("");
  $("v").innerHTML=tab==="dzis"?dzis():tab==="roz"?roz():tab==="ryt"?ryt():tab==="pam"?pam():tab==="fast"?fast():tab==="rap"?rap():post();
 }
-function tick(){var fa=$("fa"),ac=act();if(fa&&ac)fa.textContent=hm(Date.now()-ac.s);if(!P||!P.run)return;P.t--;if(P.t<=0){P.t=0;P.run=false;try{navigator.vibrate&&navigator.vibrate(300)}catch(e){}render();return}var t=$("tm");if(t)t.textContent=P.t+" s"}
-function fin(){var k=key(new Date());S.ro[k]=S.ro[k]||{};S.ro[k][P.m]=1;var n=(S.ro[k].s?1:0)+(S.ro[k].t?1:0);S.l[k]=S.l[k]||{};S.l[k].w2=Math.max(S.l[k].w2||0,n>1?3:2);sv();P=null;render()}
+function tick(){var fa=$("fa"),ac=act();if(fa&&ac)fa.textContent=hm(Date.now()-ac.s);if(!P||!P.run)return;P.t--;if(P.t<=0){P.t=0;P.run=false;beep();try{navigator.vibrate&&navigator.vibrate(300)}catch(e){}render();return}var t=$("tm");if(t)t.textContent=P.t+" s"}
+function fin(){var k=key(new Date());S.ro[k]=S.ro[k]||{};S.ro[k][P.m]=1;var n=(S.ro[k].s?1:0)+(S.ro[k].t?1:0);S.l[k]=S.l[k]||{};S.l[k].w2=Math.max(S.l[k].w2||0,n>1?3:2);sv();P=null;edx=false;render()}
 document.addEventListener("click",function(ev){
  var t=ev.target.closest("[data-a]");if(!t)return;var a=t.getAttribute("data-a"),id=t.getAttribute("data-id");
  if(act2(a,id))return;
@@ -270,11 +274,11 @@ document.addEventListener("click",function(ev){
  else if(a==="add"){H.push(["u"+Date.now(),id,"Nowy nawyk","","","",""]);sv();render()}
  else if(a==="rm"){if(confirm("Usunąć ten nawyk? Jego dotychczasowe zaznaczenia przestaną się liczyć w punktach.")){for(var q=0;q<H.length;q++)if(H[q][0]===id){H.splice(q,1);break}sv();render()}}
  else if(a==="up"||a==="dn"){var ix=-1;H.forEach(function(y,j){if(y[0]===id)ix=j});var st=a==="up"?-1:1,j2=ix+st;while(ix>=0&&j2>=0&&j2<H.length&&H[j2][1]!==H[ix][1])j2+=st;if(ix>=0&&j2>=0&&j2<H.length){var tmp=H[ix];H[ix]=H[j2];H[j2]=tmp;sv();render()}}
- else if(a==="go"){var gm=t.getAttribute("data-m");if(S.ex[gm].length){P={m:gm,i:0,t:dur(gm,0),run:false,v:"A"};render()}}
- else if(a==="run"){P.run=!P.run;if(P.t<=0)P.t=dur(P.m,P.i);render()}
+ else if(a==="go"){snd();var gm=t.getAttribute("data-m");if(S.ex[gm].length){P={m:gm,i:0,t:dur(gm,0),run:false,v:"A"};render()}}
+ else if(a==="run"){snd();P.run=!P.run;if(P.t<=0)P.t=dur(P.m,P.i);render()}
  else if(a==="var"){P.v=P.v==="A"?"B":"A";render()}
- else if(a==="nx"){P.i++;if(P.i>=S.ex[P.m].length){fin();return}P.t=dur(P.m,P.i);render()}
- else if(a==="stop"){P=null;render()}
+ else if(a==="nx"){edx=false;P.i++;if(P.i>=S.ex[P.m].length){fin();return}P.t=dur(P.m,P.i);render()}
+ else if(a==="stop"){P=null;edx=false;render()}
  else if(a==="exe"){edr=!edr;render()}
  else if(a==="exadd"){S.ex[t.getAttribute("data-m")].push(["Nowe ćwiczenie","","",30]);sv();render()}
  else if(a==="exrm"){if(confirm("Usunąć to ćwiczenie?")){S.ex[t.getAttribute("data-m")].splice(+t.getAttribute("data-i"),1);sv();render()}}
@@ -290,12 +294,12 @@ document.addEventListener("click",function(ev){
  else if(a==="ics")ics();
  else if(a==="reset"){if(confirm("Na pewno wyczyścić wszystkie postępy i notatki? Twoje nawyki i hasła zostaną.")){S.l={};S.ro={};S.n={};sv();render()}}
 });
-document.addEventListener("input",function(ev){var t=ev.target;if(t.getAttribute("data-f")==="n"){var k=t.getAttribute("data-k");if(t.value.trim())S.n[k]=t.value;else delete S.n[k];sv()}});
+document.addEventListener("input",function(ev){var t=ev.target;if(t.getAttribute("data-f")==="exf"&&t.getAttribute("data-j")==="4"){S.ex[t.getAttribute("data-m")][+t.getAttribute("data-i")][4]=t.value;sv();return}if(t.getAttribute("data-f")==="n"){var k=t.getAttribute("data-k");if(t.value.trim())S.n[k]=t.value;else delete S.n[k];sv()}});
 document.addEventListener("change",function(ev){var t=ev.target,f=t.getAttribute("data-f");if(!f||f==="n")return;
  if(f==="fg"){S.fg=Math.max(1,Math.min(48,+t.value||16));sv();render();return}
  if(f==="imp"){var fl=t.files[0];if(!fl)return;var fr=new FileReader();fr.onload=function(){try{var p=JSON.parse(fr.result);if(!p||!p.l||!p.h)throw 0;if(!confirm("Wczytanie kopii zastąpi wszystkie obecne dane. Kontynuować?"))return;localStorage.setItem(KEY,JSON.stringify(p));location.reload()}catch(e){alert("To nie jest poprawna kopia z aplikacji.")}};fr.readAsText(fl);return}
  if(f==="q")S.q=t.value.split("\n").map(function(x){return x.trim()}).filter(Boolean);
- else if(f==="exf"){var xe=S.ex[t.getAttribute("data-m")][+t.getAttribute("data-i")],xj=+t.getAttribute("data-j");xe[xj]=xj===3?Math.max(5,Math.min(600,+t.value||30)):t.value}
+ else if(f==="exf"){var xe=S.ex[t.getAttribute("data-m")][+t.getAttribute("data-i")],xj=+t.getAttribute("data-j");xe[xj]=xj===3?Math.max(5,Math.min(600,+t.value||30)):t.value;if(xj===3)t.value=xe[3];if(P&&P.m===t.getAttribute("data-m")&&P.i===+t.getAttribute("data-i")){var a1=$("xn"),a2=$("xv");if(a1)a1.textContent=xe[0];if(a2)a2.textContent=P.v==="A"?xe[1]:xe[2];if(xj===3&&!P.run){P.t=xe[3];var tm=$("tm");if(tm)tm.textContent=P.t+" s"}}}
  else if(f==="ry"){var rid=t.getAttribute("data-id"),rj=+t.getAttribute("data-j");S.ry.forEach(function(y){if(y[0]===rid)y[rj]=t.value})}
  else{var id=t.getAttribute("data-id");H.forEach(function(y){if(y[0]===id)y[+f]=t.value})}
  sv();if(f==="1")render()});
